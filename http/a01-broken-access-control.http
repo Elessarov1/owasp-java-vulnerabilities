@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### Healthcheck
+GET {{baseUrl}}/health
+
+
+### A01 Vulnerable: Alice gets her own document
+GET {{baseUrl}}/a01/vulnerable/documents?id=100
+X-User-Id: 1
+
+
+### A01 Vulnerable: Alice gets Bob's document
+# This request demonstrates IDOR / Broken Access Control.
+# Alice is authenticated as user 1, but she can access document 200 owned by Bob.
+GET {{baseUrl}}/a01/vulnerable/documents?id=200
+X-User-Id: 1
+
+
+### A01 Fixed: Alice gets her own document
+GET {{baseUrl}}/a01/fixed/documents?id=100
+X-User-Id: 1
+
+
+### A01 Fixed: Alice tries to get Bob's document
+# Expected result: 404 Not Found.
+# The fixed endpoint searches by documentId + currentUser.id.
+GET {{baseUrl}}/a01/fixed/documents?id=200
+X-User-Id: 1
+
+
+### A01 Auth: missing X-User-Id header
+# Expected result: 401 Unauthorized.
+GET {{baseUrl}}/a01/vulnerable/documents?id=100
+
+
+### A01 Auth: unknown user
+# Expected result: 401 Unauthorized.
+GET {{baseUrl}}/a01/vulnerable/documents?id=100
+X-User-Id: 999
+
+
+### A01 Bad Request: missing document id
+# Expected result: 400 Bad Request.
+GET {{baseUrl}}/a01/vulnerable/documents
+X-User-Id: 1
+
+
+### A01 Bad Request: invalid document id
+# Expected result: 400 Bad Request.
+GET {{baseUrl}}/a01/vulnerable/documents?id=abc
+X-User-Id: 1

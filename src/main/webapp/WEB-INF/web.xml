@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>OWASP Java Vulnerabilities</display-name>
+
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>io.github.owasp.lab.common.auth.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/a01/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>HealthServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.common.health.HealthServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>HealthServlet</servlet-name>
+        <url-pattern>/health</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <servlet-name>VulnerableDocumentServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a01_broken_access_control.vulnerable.VulnerableDocumentServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>VulnerableDocumentServlet</servlet-name>
+        <url-pattern>/a01/vulnerable/documents</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FixedDocumentServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a01_broken_access_control.fixed.FixedDocumentServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>FixedDocumentServlet</servlet-name>
+        <url-pattern>/a01/fixed/documents</url-pattern>
+    </servlet-mapping>
+
+</web-app>

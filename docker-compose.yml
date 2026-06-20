@@ -1,0 +1,8 @@
+services:
+  tomcat:
+    image: tomcat:10.1-jdk21
+    container_name: owasp-java-vulnerabilities
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./build/libs/owasp-java-vulnerabilities-1.0-SNAPSHOT.war:/usr/local/tomcat/webapps/owasp-java-vulnerabilities.war
