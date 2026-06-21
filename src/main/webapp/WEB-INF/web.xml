@@ -15,7 +15,12 @@
 
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
-        <url-pattern>/a01/*</url-pattern>
+        <url-pattern>/a01/vulnerable/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/a01/fixed/*</url-pattern>
     </filter-mapping>
 
     <servlet>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP A01 — Broken Access Control</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-light: #1f2937;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --green: #22c55e;
+            --red: #ef4444;
+            --blue: #38bdf8;
+            --yellow: #facc15;
+            --border: #374151;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at top, #1e293b, var(--bg));
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .label {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--blue);
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 42px;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            max-width: 800px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .card h2 {
+            margin: 0 0 16px;
+            font-size: 22px;
+        }
+
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            border-radius: 14px;
+            background: var(--panel-light);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #172554;
+            color: var(--blue);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .user-meta {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #020617;
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .documents {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .document {
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #020617;
+        }
+
+        .document-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .owner {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .owner.alice span {
+            color: var(--green);
+        }
+
+        .owner.bob span {
+            color: var(--red);
+        }
+
+        .actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 16px;
+            border: 0;
+            border-radius: 12px;
+            color: #020617;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.12s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            opacity: 0.94;
+        }
+
+        .btn-green {
+            background: var(--green);
+        }
+
+        .btn-red {
+            background: var(--red);
+        }
+
+        .btn-blue {
+            background: var(--blue);
+        }
+
+        .explanation {
+            margin-top: 18px;
+            padding: 16px;
+            border-left: 4px solid var(--yellow);
+            background: rgba(250, 204, 21, 0.08);
+            color: #fde68a;
+            border-radius: 10px;
+            line-height: 1.5;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: var(--panel-light);
+            color: var(--muted);
+        }
+
+        .status.ok {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+        }
+
+        .request-line {
+            margin-top: 18px;
+            margin-bottom: 14px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #020617;
+            color: var(--blue);
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        pre {
+            min-height: 240px;
+            margin: 0;
+            padding: 18px;
+            border-radius: 14px;
+            background: #020617;
+            border: 1px solid var(--border);
+            color: #d1d5db;
+            font-family: Consolas, monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            overflow: auto;
+        }
+
+        .hint {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .hint code {
+            color: var(--blue);
+            background: #020617;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-family: Consolas, monospace;
+        }
+
+        .page-footer {
+            margin-top: 32px;
+            padding: 18px 22px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(17, 24, 39, 0.72);
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .page-footer a {
+            color: var(--blue);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="header">
+        <div class="label">OWASP A01</div>
+        <h1>Broken Access Control — IDOR Demo</h1>
+        <p class="subtitle">
+            This page demonstrates how an authenticated user can access another user's document
+            when the backend loads an object only by its ID and does not verify ownership.
+        </p>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <h2>Demo Scenario</h2>
+
+            <div class="user-box">
+                <div class="avatar" id="avatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Alice</div>
+                    <div class="user-meta" id="userMeta">X-User-Id: 1</div>
+                </div>
+            </div>
+
+            <label for="currentUser">Current authenticated user</label>
+            <select id="currentUser">
+                <option value="1" selected>Alice — user id 1</option>
+                <option value="2">Bob — user id 2</option>
+            </select>
+
+            <div class="documents">
+                <div class="document">
+                    <div class="document-title">Document 100</div>
+                    <div class="owner alice">Owner: <span>Alice</span></div>
+                </div>
+
+                <div class="document">
+                    <div class="document-title">Document 200</div>
+                    <div class="owner bob">Owner: <span>Bob</span></div>
+                </div>
+            </div>
+
+            <div class="explanation">
+                Alice should access Document 100. Alice should not access Document 200.
+                The vulnerable endpoint breaks this rule.
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="result-header">
+                <h2>Run Requests</h2>
+                <div class="status" id="status">No request yet</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-green" onclick="loadDocument('/a01/vulnerable/documents?id=100')">
+                    Legitimate request: get Document 100
+                </button>
+
+                <button class="btn-red" onclick="loadDocument('/a01/vulnerable/documents?id=200')">
+                    Vulnerable request: get Document 200
+                </button>
+
+                <button class="btn-blue" onclick="loadDocument('/a01/fixed/documents?id=200')">
+                    Fixed request: try to get Document 200
+                </button>
+            </div>
+
+            <div class="hint">
+                The browser sends the selected user as <code>X-User-Id</code>.
+                The vulnerable endpoint returns Bob's document to Alice.
+                The fixed endpoint returns 404.
+            </div>
+
+            <div class="request-line" id="requestLine">
+                Request will be shown here
+            </div>
+
+            <pre id="result">Response will be shown here</pre>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        This demo is part of an educational project based on the
+        <a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener noreferrer">
+            OWASP Top 10
+        </a>.
+        The vulnerable examples are intentionally insecure and must not be used in production.
+    </footer>
+</div>
+
+<script>
+    const currentUserSelect = document.getElementById('currentUser');
+    const avatar = document.getElementById('avatar');
+    const userName = document.getElementById('userName');
+    const userMeta = document.getElementById('userMeta');
+    const statusBadge = document.getElementById('status');
+    const requestLine = document.getElementById('requestLine');
+    const result = document.getElementById('result');
+
+    currentUserSelect.addEventListener('change', updateCurrentUser);
+
+    function updateCurrentUser() {
+        const userId = currentUserSelect.value;
+
+        if (userId === '1') {
+            avatar.textContent = 'A';
+            userName.textContent = 'Alice';
+            userMeta.textContent = 'X-User-Id: 1';
+        } else {
+            avatar.textContent = 'B';
+            userName.textContent = 'Bob';
+            userMeta.textContent = 'X-User-Id: 2';
+        }
+    }
+
+    async function loadDocument(path) {
+        const userId = currentUserSelect.value;
+        const url = contextPath() + path;
+
+        requestLine.textContent = `GET ${path}\nX-User-Id: ${userId}`;
+
+        statusBadge.className = 'status';
+        statusBadge.textContent = 'Loading...';
+        result.textContent = '';
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-User-Id': userId,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const body = await response.json();
+
+            if (response.ok) {
+                statusBadge.className = 'status ok';
+                statusBadge.textContent = `${response.status} OK`;
+            } else {
+                statusBadge.className = 'status error';
+                statusBadge.textContent = `${response.status} Error`;
+            }
+
+            result.textContent = JSON.stringify(body, null, 2);
+        } catch (error) {
+            statusBadge.className = 'status error';
+            statusBadge.textContent = 'Request failed';
+            result.textContent = error.message;
+        }
+    }
+
+    function contextPath() {
+        const path = window.location.pathname;
+        const secondSlashIndex = path.indexOf('/', 1);
+
+        if (secondSlashIndex === -1) {
+            return '';
+        }
+
+        return path.substring(0, secondSlashIndex);
+    }
+</script>
+</body>
+</html>
