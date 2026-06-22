@@ -62,12 +62,6 @@ Covered topics:
 * 404 vs 403 behavior
 * Negative authorization tests
 
-## Disclaimer
-
-This project is for educational purposes only.
-
-The vulnerable examples are intentionally insecure and must not be used in production.
-
 ### A02:2025 Security Misconfiguration
 
 The second completed module demonstrates a security misconfiguration caused by verbose error handling.
@@ -84,3 +78,9 @@ Covered topics:
 - Safe error handling
 - Server-side logging
 - Generic client-facing error messages
+
+## Disclaimer
+
+This project is for educational purposes only.
+
+The vulnerable examples are intentionally insecure and must not be used in production.
