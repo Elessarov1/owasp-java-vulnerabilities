@@ -2,6 +2,7 @@ services:
   tomcat:
     image: tomcat:10.1-jdk21
     container_name: owasp-java-vulnerabilities
+    network_mode: bridge
     ports:
       - "8080:8080"
     volumes:

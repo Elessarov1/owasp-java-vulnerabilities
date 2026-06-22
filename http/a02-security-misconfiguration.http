@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A02:2025 Security Misconfiguration - vulnerable existing report
+### Expected: 200 OK, normal JSON response with report data
+GET {{baseUrl}}/a02/vulnerable/debug-error?reportId=1
+
+
+### A02:2025 Security Misconfiguration - vulnerable another existing report
+### Expected: 200 OK, normal JSON response with report data
+GET {{baseUrl}}/a02/vulnerable/debug-error?reportId=2
+
+
+### A02:2025 Security Misconfiguration - vulnerable missing report
+### Expected: 500 Internal Server Error
+### Security issue: response leaks exception type, message, database URL, table name, storage path, feature flag and stack trace
+GET {{baseUrl}}/a02/vulnerable/debug-error?reportId=42
+
+
+### A02:2025 Security Misconfiguration - vulnerable invalid report id
+### Expected: 500 Internal Server Error
+### Security issue: response leaks internal validation error and stack trace
+GET {{baseUrl}}/a02/vulnerable/debug-error?reportId=abc
+
+
+### A02:2025 Security Misconfiguration - vulnerable missing reportId parameter
+### Expected: 500 Internal Server Error
+### Security issue: response leaks internal error details
+GET {{baseUrl}}/a02/vulnerable/debug-error
+
+
+### A02:2025 Security Misconfiguration - fixed existing report
+### Expected: 200 OK, normal JSON response with report data
+GET {{baseUrl}}/a02/fixed/debug-error?reportId=1
+
+
+### A02:2025 Security Misconfiguration - fixed another existing report
+### Expected: 200 OK, normal JSON response with report data
+GET {{baseUrl}}/a02/fixed/debug-error?reportId=2
+
+
+### A02:2025 Security Misconfiguration - fixed missing report
+### Expected: 500 Internal Server Error
+### Fixed behavior: response contains only generic error message
+GET {{baseUrl}}/a02/fixed/debug-error?reportId=42
+
+
+### A02:2025 Security Misconfiguration - fixed invalid report id
+### Expected: 500 Internal Server Error
+### Fixed behavior: response contains only generic error message
+GET {{baseUrl}}/a02/fixed/debug-error?reportId=abc
+
+
+### A02:2025 Security Misconfiguration - fixed missing reportId parameter
+### Expected: 500 Internal Server Error
+### Fixed behavior: response contains only generic error message
+GET {{baseUrl}}/a02/fixed/debug-error

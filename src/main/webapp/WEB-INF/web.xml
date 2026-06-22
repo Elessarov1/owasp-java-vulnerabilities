@@ -54,4 +54,24 @@
         <url-pattern>/a01/fixed/documents</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>VulnerableDebugErrorServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a02_security_misconfiguration.vulnerable.VulnerableDebugErrorServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>VulnerableDebugErrorServlet</servlet-name>
+        <url-pattern>/a02/vulnerable/debug-error</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FixedDebugErrorServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a02_security_misconfiguration.fixed.FixedDebugErrorServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>FixedDebugErrorServlet</servlet-name>
+        <url-pattern>/a02/fixed/debug-error</url-pattern>
+    </servlet-mapping>
+
 </web-app>
