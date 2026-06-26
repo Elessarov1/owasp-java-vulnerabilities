@@ -1,0 +1,42 @@
+name: Semgrep SAST
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request: {}
+  workflow_dispatch: {}
+
+jobs:
+  semgrep:
+    name: Semgrep custom rules
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Prepare report directory
+        run: mkdir -p build/semgrep
+
+      - name: Run Semgrep and generate SARIF
+        run: |
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/src" \
+            -w /src \
+            semgrep/semgrep \
+            semgrep scan --config semgrep/rules . \
+            --sarif-output build/semgrep/semgrep.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: build/semgrep/semgrep.sarif
+          category: semgrep-custom-rules

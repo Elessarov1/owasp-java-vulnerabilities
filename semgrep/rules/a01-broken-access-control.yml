@@ -1,0 +1,30 @@
+rules:
+  - id: owasp-java-vulnerabilities.a01.object-lookup-by-request-controlled-id
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      Object lookup by id is performed inside a servlet. If the id comes from
+      the HTTP request, verify that ownership, tenant, or permission checks are
+      enforced before returning the object. Otherwise this may lead to IDOR /
+      Broken Access Control.
+    metadata:
+      category: security
+      project_case: "A01:2025 - Broken Access Control"
+      cwe:
+        - "CWE-639: Authorization Bypass Through User-Controlled Key"
+        - "CWE-862: Missing Authorization"
+      confidence: MEDIUM
+    patterns:
+      - pattern-inside: |
+          class $CLASS extends HttpServlet {
+            ...
+          }
+      - pattern: |
+          $REPOSITORY.$METHOD($ID)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: (?i).*(find|get|load|read|fetch).*(by)?id.*
+      - metavariable-regex:
+          metavariable: $ID
+          regex: (?i).*(id|document|resource|object|account|order|invoice|user).*

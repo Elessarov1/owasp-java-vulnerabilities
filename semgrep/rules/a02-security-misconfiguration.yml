@@ -1,0 +1,42 @@
+rules:
+  - id: owasp-java-vulnerabilities.a02.print-stack-trace
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      printStackTrace(...) is used in application code. Stack traces can expose
+      internal implementation details. Prefer structured server-side logging and
+      return generic error messages to clients.
+    metadata:
+      category: security
+      project_case: "A02:2025 - Security Misconfiguration"
+      related_owasp_2025: "A10:2025 - Mishandling of Exceptional Conditions"
+      cwe:
+        - "CWE-209: Generation of Error Message Containing Sensitive Information"
+      confidence: HIGH
+    pattern: |
+      $E.printStackTrace(...)
+
+  - id: owasp-java-vulnerabilities.a02.exception-details-used
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      Exception details are used directly. Do not expose exception messages,
+      class names, causes, or stack traces to clients. Log internal details on
+      the server side and return a generic error response.
+    metadata:
+      category: security
+      project_case: "A02:2025 - Security Misconfiguration"
+      related_owasp_2025: "A10:2025 - Mishandling of Exceptional Conditions"
+      cwe:
+        - "CWE-209: Generation of Error Message Containing Sensitive Information"
+        - "CWE-497: Exposure of Sensitive System Information"
+      confidence: MEDIUM
+    pattern-either:
+      - pattern: |
+          $E.getMessage()
+      - pattern: |
+          $E.getClass().getName()
+      - pattern: |
+          $E.getCause()
