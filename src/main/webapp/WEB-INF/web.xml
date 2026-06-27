@@ -74,4 +74,24 @@
         <url-pattern>/a02/fixed/debug-error</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>A03VulnerableTemplatePreviewServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a03_software_supply_chain_failures.vulnerable.VulnerableTemplatePreviewServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A03VulnerableTemplatePreviewServlet</servlet-name>
+        <url-pattern>/a03/vulnerable/template-preview</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>A03FixedTemplatePreviewServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a03_software_supply_chain_failures.fixed.FixedTemplatePreviewServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A03FixedTemplatePreviewServlet</servlet-name>
+        <url-pattern>/a03/fixed/template-preview</url-pattern>
+    </servlet-mapping>
+
 </web-app>

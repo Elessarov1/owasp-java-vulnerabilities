@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A03:2025 Software Supply Chain Failures - vulnerable normal text
+### Expected: 200 OK
+GET {{baseUrl}}/a03/vulnerable/template-preview?template=Hello%20world
+
+### A03:2025 Software Supply Chain Failures - vulnerable interpolation
+### Expected: 200 OK
+### Security issue: user-controlled input is evaluated as a template expression
+GET {{baseUrl}}/a03/vulnerable/template-preview?template=Java%20version:%20%24%7Bjava:version%7D
+
+### A03:2025 Software Supply Chain Failures - vulnerable system property lookup
+### Expected: 200 OK
+### Security issue: internal runtime property may be exposed
+GET {{baseUrl}}/a03/vulnerable/template-preview?template=Current%20directory:%20%24%7Bsys:user.dir%7D
+
+### A03:2025 Software Supply Chain Failures - fixed welcome template
+### Expected: 200 OK
+GET {{baseUrl}}/a03/fixed/template-preview?templateName=welcome&name=Alice
+
+### A03:2025 Software Supply Chain Failures - fixed unknown template
+### Expected: 404 Not Found
+GET {{baseUrl}}/a03/fixed/template-preview?templateName=unknown&name=Alice
+
+### A03:2025 Software Supply Chain Failures - fixed malicious-looking name
+### Expected: 200 OK
+### The user value is treated as a value, not as a template selected by the user
+GET {{baseUrl}}/a03/fixed/template-preview?templateName=welcome&name=%24%7Bjava:version%7D

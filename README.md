@@ -14,12 +14,13 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 - [Project Structure](#project-structure)
 - [Examples](#examples)
 - [Completed Modules](#completed-modules)
-    - [A01:2025 Broken Access Control](#a012025-broken-access-control)
-    - [A02:2025 Security Misconfiguration](#a022025-security-misconfiguration)
+  - [A01:2025 Broken Access Control](#a012025-broken-access-control)
+  - [A02:2025 Security Misconfiguration](#a022025-security-misconfiguration)
+  - [A03:2025 Software Supply Chain Failures](#a032025-software-supply-chain-failures)
 - [Static Analysis with Semgrep](#static-analysis-with-semgrep)
-    - [Local Semgrep Usage](#local-semgrep-usage)
-    - [Reports](#reports)
-    - [GitHub Code Scanning](#github-code-scanning)
+  - [Local Semgrep Usage](#local-semgrep-usage)
+  - [Reports](#reports)
+  - [GitHub Code Scanning](#github-code-scanning)
 - [Finding Triage](#finding-triage)
 - [Suggested Learning Flow](#suggested-learning-flow)
 - [Disclaimer](#disclaimer)
@@ -60,7 +61,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 |------------------------------------------------|-------------|-------------------------------------------|
 | A01:2025 Broken Access Control                 | Completed   | IDOR with document access                 |
 | A02:2025 Security Misconfiguration             | Completed   | Stack trace and internal details exposure |
-| A03:2025 Software Supply Chain Failures        | In progress | Dependency with known CVE                 |
+| A03:2025 Software Supply Chain Failures        | Completed   | Unsafe template interpolation             |
 | A04:2025 Cryptographic Failures                | Planned     | Weak password hashing                     |
 | A05:2025 Injection                             | Planned     | SQL Injection with JDBC                   |
 | A06:2025 Insecure Design                       | Planned     | Missing idempotency in payment flow       |
@@ -103,6 +104,23 @@ Covered topics:
 * Server-side logging
 * Generic client-facing error messages
 
+### A03:2025 Software Supply Chain Failures
+
+The third completed module demonstrates a software supply chain failure caused by an outdated dependency combined with unsafe API usage.
+
+It shows how user-controlled input can be evaluated as a template expression when passed to a powerful interpolation API.
+
+The fixed version avoids evaluating arbitrary user-controlled templates. It uses predefined server-side templates and substitutes only known placeholder values.
+
+Covered topics:
+
+* Vulnerable third-party dependencies
+* Unsafe template interpolation
+* User-controlled input flowing into dangerous APIs
+* SCA and dependency review
+* Dependabot alerts and dependency updates
+* Secure use of predefined templates
+
 ## Static Analysis with Semgrep
 
 This project includes custom Semgrep rules for educational SAST demonstrations.
@@ -123,6 +141,7 @@ Current rule coverage:
 |------------|---------|
 | A01:2025 Broken Access Control | Detect suspicious object lookup by id inside servlet code |
 | A02:2025 Security Misconfiguration | Detect unsafe exception handling patterns |
+| A03:2025 Software Supply Chain Failures | Detect HTTP input flowing into unsafe template interpolation |
 
 The detailed finding messages are available directly in Semgrep output and GitHub Code Scanning reports.
 
@@ -219,17 +238,17 @@ Repository → Security → Code scanning
 
 The pipeline does not fail on Semgrep findings because this repository intentionally contains vulnerable code for educational purposes.
 
-## Finding Triage
+### Dependency Analysis
 
-SAST findings require review.
+Dependency vulnerabilities are handled separately from custom Semgrep code rules.
 
-GitHub Code Scanning allows alerts to be fixed or dismissed with a reason such as:
+This project uses:
 
-* false positive;
-* won't fix;
-* used in tests.
+* GitHub Dependabot alerts for vulnerable dependencies;
+* Dependabot version updates for dependency upgrade pull requests;
+* Dependency Review Action for pull request dependency checks.
 
-In this educational repository, some alerts are expected because vulnerable examples are intentionally stored in the codebase.
+Semgrep is used for code-level review signals, while Dependabot/SCA is used for dependency-level vulnerability detection.
 
 ## Suggested Learning Flow
 

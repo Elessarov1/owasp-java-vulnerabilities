@@ -1,0 +1,54 @@
+rules:
+  - id: owasp-java-vulnerabilities.a03.user-input-to-template-interpolation
+    languages:
+      - java
+    severity: WARNING
+    mode: taint
+    message: >
+      User-controlled HTTP input flows into template interpolation. Review this
+      carefully: evaluating external input as a template can expose runtime data
+      or trigger dangerous behavior depending on the dependency version and
+      enabled lookups.
+    metadata:
+      category: security
+      project_case: "A03:2025 - Software Supply Chain Failures"
+      rule_type: "taint-review-signal"
+      confidence: HIGH
+      cwe:
+        - "CWE-94: Improper Control of Generation of Code"
+        - "CWE-200: Exposure of Sensitive Information"
+
+    pattern-sources:
+      - pattern: |
+          $REQUEST.getParameter(...)
+      - pattern: |
+          $REQUEST.getHeader(...)
+      - pattern: |
+          $REQUEST.getQueryString()
+
+    pattern-sinks:
+      - patterns:
+          - pattern: |
+              StringSubstitutor.createInterpolator().replace($INPUT)
+          - focus-metavariable: $INPUT
+
+      - patterns:
+          - pattern: |
+              org.apache.commons.text.StringSubstitutor.createInterpolator().replace($INPUT)
+          - focus-metavariable: $INPUT
+
+      - patterns:
+          - pattern-inside: |
+              var $SUBSTITUTOR = StringSubstitutor.createInterpolator();
+              ...
+          - pattern: |
+              $SUBSTITUTOR.replace($INPUT)
+          - focus-metavariable: $INPUT
+
+      - patterns:
+          - pattern-inside: |
+              StringSubstitutor $SUBSTITUTOR = StringSubstitutor.createInterpolator();
+              ...
+          - pattern: |
+              $SUBSTITUTOR.replace($INPUT)
+          - focus-metavariable: $INPUT
