@@ -4,129 +4,6 @@
     <meta charset="UTF-8">
     <title>OWASP A03 — Software Supply Chain Failures</title>
     <link rel="stylesheet" href="../assets/css/lab.css">
-
-    <style>
-        .dependency-box {
-            padding: 16px;
-            border-radius: 14px;
-            background: var(--panel-light);
-            border: 1px solid var(--border);
-            margin-bottom: 16px;
-        }
-
-        .dependency-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .dependency-meta {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .dependency-meta code {
-            color: var(--blue);
-            background: #020617;
-            padding: 2px 5px;
-            border-radius: 5px;
-            font-family: Consolas, monospace;
-        }
-
-        .flow {
-            display: grid;
-            gap: 12px;
-            margin-top: 18px;
-        }
-
-        .flow-step {
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: #020617;
-        }
-
-        .flow-step-title {
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .flow-step-text {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .flow-step.danger {
-            border-color: rgba(239, 68, 68, 0.35);
-            background: rgba(239, 68, 68, 0.08);
-        }
-
-        .flow-step.safe {
-            border-color: rgba(34, 197, 94, 0.35);
-            background: rgba(34, 197, 94, 0.08);
-        }
-
-        .payload-box {
-            margin-top: 18px;
-        }
-
-        .payload-box label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        .payload-input {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: #020617;
-            color: var(--text);
-            font-family: Consolas, monospace;
-            font-size: 15px;
-            outline: none;
-        }
-
-        .payload-input:focus {
-            border-color: var(--blue);
-        }
-
-        .danger-list {
-            display: grid;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .danger-item {
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #fecaca;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .safe-list {
-            display: grid;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .safe-item {
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: rgba(34, 197, 94, 0.08);
-            border: 1px solid rgba(34, 197, 94, 0.25);
-            color: #bbf7d0;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-    </style>
 </head>
 <body>
 <div class="page">
@@ -143,9 +20,9 @@
         <section class="card">
             <h2>Demo Scenario</h2>
 
-            <div class="dependency-box">
-                <div class="dependency-title">Dependency and API</div>
-                <div class="dependency-meta">
+            <div class="info-box">
+                <div class="info-title">Dependency and API</div>
+                <div class="info-meta">
                     The vulnerable endpoint uses <code>org.apache.commons:commons-text:1.9</code>
                     and passes user input directly to
                     <code>StringSubstitutor.createInterpolator().replace(...)</code>.
@@ -170,21 +47,22 @@
                 </div>
             </div>
 
-            <div class="danger-list">
-                <div class="danger-item">User input is interpreted as a template expression</div>
-                <div class="danger-item">Runtime details can be exposed through supported lookups</div>
-                <div class="danger-item">The vulnerable code uses broad default interpolators</div>
+            <div class="state-list">
+                <div class="state-item danger">User input is interpreted as a template expression</div>
+                <div class="state-item danger">Runtime details can be exposed through supported lookups</div>
+                <div class="state-item danger">The vulnerable code uses broad default interpolators</div>
             </div>
 
-            <div class="safe-list">
-                <div class="safe-item">Templates are selected from a server-side catalog</div>
-                <div class="safe-item">Only known placeholders are substituted</div>
-                <div class="safe-item">The fixed code does not use <code>createInterpolator()</code></div>
+            <div class="state-list">
+                <div class="state-item safe">Templates are selected from a server-side catalog</div>
+                <div class="state-item safe">Only known placeholders are substituted</div>
+                <div class="state-item safe">The fixed code does not use <code>createInterpolator()</code></div>
             </div>
 
             <div class="explanation">
-                The vulnerable example is intentionally insecure. The goal is to show that a supply chain issue
-                is often dangerous because of how the dependency is used in application code.
+                Run both requests with the same input. The vulnerable endpoint evaluates the input as a template.
+                The fixed endpoint treats the same value as a simple placeholder value inside a predefined
+                server-side template.
             </div>
         </section>
 
@@ -194,53 +72,31 @@
                 <div class="status" id="status">No request yet</div>
             </div>
 
+            <div class="form-grid">
+                <div class="field">
+                    <label for="templateInput">Template input / user value</label>
+                    <input
+                            id="templateInput"
+                            value="Java version: ${java:version}"
+                            autocomplete="off"
+                    >
+                </div>
+            </div>
+
             <div class="actions">
-                <button class="btn-green" onclick="runVulnerableTemplate('Hello world')">
-                    Normal request: plain text template
+                <button class="btn-red" onclick="runVulnerableTemplate()">
+                    Run vulnerable: evaluate user template
                 </button>
 
-                <button class="btn-red" onclick="runVulnerableTemplate('Java version: ${java:version}')">
-                    Vulnerable request: evaluate Java runtime lookup
-                </button>
-
-                <button class="btn-yellow" onclick="runVulnerableTemplate('Current directory: ${sys:user.dir}')">
-                    Vulnerable request: expose system property
-                </button>
-
-                <button class="btn-blue" onclick="runFixedTemplate('welcome', 'Alice')">
-                    Fixed request: predefined welcome template
-                </button>
-
-                <button class="btn-blue" onclick="runFixedTemplate('welcome', '${java:version}')">
-                    Fixed request: malicious-looking value
-                </button>
-
-                <button class="btn-red" onclick="runFixedTemplate('unknown', 'Alice')">
-                    Fixed request: unknown template
-                </button>
-            </div>
-
-            <div class="payload-box">
-                <label for="customTemplate">
-                    Custom vulnerable template
-                </label>
-                <input
-                        class="payload-input"
-                        id="customTemplate"
-                        value="Java version: ${java:version}"
-                        autocomplete="off"
-                >
-            </div>
-
-            <div class="actions" style="margin-top: 12px;">
-                <button class="btn-yellow" onclick="runCustomVulnerableTemplate()">
-                    Run custom vulnerable template
+                <button class="btn-blue" onclick="runFixedTemplate()">
+                    Run fixed: use predefined template
                 </button>
             </div>
 
             <div class="hint">
-                The vulnerable endpoint accepts <code>template</code> directly from the query string.
-                The fixed endpoint accepts <code>templateName</code> and <code>name</code>.
+                The vulnerable endpoint sends the input as <code>template</code>.
+                The fixed endpoint sends the same value as <code>name</code> and uses
+                a server-side template named <code>welcome</code>.
             </div>
 
             <div class="request-line" id="requestLine">
@@ -256,7 +112,12 @@
 
 <script src="../assets/js/lab.js"></script>
 <script>
-    function runVulnerableTemplate(template) {
+    function currentInput() {
+        return document.getElementById('templateInput').value;
+    }
+
+    function runVulnerableTemplate() {
+        const template = currentInput();
         const path = '/a03/vulnerable/template-preview?template=' + encodeURIComponent(template);
 
         return sendJsonGetRequest({
@@ -265,23 +126,19 @@
         });
     }
 
-    function runCustomVulnerableTemplate() {
-        const template = document.getElementById('customTemplate').value;
+    function runFixedTemplate() {
+        const value = currentInput();
 
-        return runVulnerableTemplate(template);
-    }
-
-    function runFixedTemplate(templateName, name) {
         const params = new URLSearchParams({
-            templateName: templateName,
-            name: name
+            templateName: 'welcome',
+            name: value
         });
 
         const path = '/a03/fixed/template-preview?' + params.toString();
 
         return sendJsonGetRequest({
             path: path,
-            requestText: `GET /a03/fixed/template-preview?templateName=${templateName}&name=${name}`
+            requestText: `GET /a03/fixed/template-preview?templateName=welcome&name=${value}`
         });
     }
 

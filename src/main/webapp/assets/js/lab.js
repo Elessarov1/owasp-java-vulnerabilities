@@ -90,3 +90,43 @@ function renderLabFooter(elementId = 'labFooter') {
         The vulnerable examples are intentionally insecure and must not be used in production.
     `;
 }
+
+async function sendFormPostRequest({
+                                     path,
+                                     formData,
+                                     requestText,
+                                     statusElementId = 'status',
+                                     requestLineElementId = 'requestLine',
+                                     resultElementId = 'result'
+                                   }) {
+  const statusBadge = document.getElementById(statusElementId);
+  const requestLine = document.getElementById(requestLineElementId);
+  const result = document.getElementById(resultElementId);
+
+  const url = contextPath() + path;
+  const body = new URLSearchParams(formData);
+
+  requestLine.textContent =
+      requestText ||
+      `POST ${path}\nContent-Type: application/x-www-form-urlencoded\n\n${body}`;
+
+  setLoading(statusBadge, result);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: body
+    });
+
+    const responseBody = await readResponseBody(response);
+
+    setResponseStatus(statusBadge, response);
+    result.textContent = formatBody(responseBody);
+  } catch (error) {
+    setRequestFailed(statusBadge, result, error);
+  }
+}

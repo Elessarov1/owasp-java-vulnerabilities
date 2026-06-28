@@ -1,74 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>OWASP A02 — Security Misconfiguration</title>
     <link rel="stylesheet" href="../assets/css/lab.css">
-
-    <style>
-        .scenario-box {
-            padding: 16px;
-            border-radius: 14px;
-            background: var(--panel-light);
-            border: 1px solid var(--border);
-            margin-bottom: 16px;
-        }
-
-        .scenario-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .scenario-meta {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .reports {
-            display: grid;
-            gap: 12px;
-            margin-top: 18px;
-        }
-
-        .report {
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: #020617;
-        }
-
-        .report-title {
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .report-meta {
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        .report-meta span {
-            color: var(--green);
-        }
-
-        .danger-list {
-            display: grid;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .danger-item {
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #fecaca;
-            font-size: 14px;
-        }
-    </style>
 </head>
 <body>
 <div class="page">
@@ -85,45 +20,44 @@
         <section class="card">
             <h2>Demo Scenario</h2>
 
-            <div class="scenario-box">
-                <div class="scenario-title">Internal Diagnostics Report</div>
-                <div class="scenario-meta">
-                    The application has an internal diagnostics endpoint.
-                    A normal report request should return report data.
-                    A failed request should not expose implementation details to the client.
+            <div class="info-box">
+                <div class="info-title">Internal Diagnostics Report</div>
+                <div class="info-meta">
+                    Reports <code>1</code> and <code>2</code> exist. Report <code>42</code> is missing
+                    and can be used to trigger an error.
                 </div>
             </div>
 
-            <div class="reports">
-                <div class="report">
-                    <div class="report-title">Report 1</div>
-                    <div class="report-meta">Status: <span>existing report</span></div>
+            <div class="flow">
+                <div class="flow-step danger">
+                    <div class="flow-step-title">Vulnerable flow</div>
+                    <div class="flow-step-text">
+                        The endpoint returns exception details and internal diagnostics directly to the client.
+                    </div>
                 </div>
 
-                <div class="report">
-                    <div class="report-title">Report 2</div>
-                    <div class="report-meta">Status: <span>existing report</span></div>
-                </div>
-
-                <div class="report">
-                    <div class="report-title">Report 42</div>
-                    <div class="report-meta">Status: missing report, used to trigger an error</div>
+                <div class="flow-step safe">
+                    <div class="flow-step-title">Fixed flow</div>
+                    <div class="flow-step-text">
+                        The endpoint logs details on the server side and returns only a generic client-facing error.
+                    </div>
                 </div>
             </div>
 
-            <div class="danger-list">
-                <div class="danger-item">Leaked exception type</div>
-                <div class="danger-item">Leaked exception message</div>
-                <div class="danger-item">Leaked database URL</div>
-                <div class="danger-item">Leaked internal table name</div>
-                <div class="danger-item">Leaked file system path</div>
-                <div class="danger-item">Leaked feature flag</div>
-                <div class="danger-item">Leaked stack trace</div>
+            <div class="state-list">
+                <div class="state-item danger">Leaked exception type and message</div>
+                <div class="state-item danger">Leaked database URL, table name, storage path, and feature flag</div>
+                <div class="state-item danger">Leaked stack trace</div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item safe">Detailed error is kept in server-side logs</div>
+                <div class="state-item safe">Client receives a generic error message</div>
             </div>
 
             <div class="explanation">
-                Error details are useful for developers, but they must stay in server-side logs.
-                The client should receive a safe generic error message.
+                Use report <code>42</code> or an invalid value such as <code>abc</code> to compare
+                vulnerable and fixed error handling.
             </div>
         </section>
 
@@ -133,28 +67,26 @@
                 <div class="status" id="status">No request yet</div>
             </div>
 
+            <div class="form-grid">
+                <div class="field">
+                    <label for="reportId">Report ID</label>
+                    <input id="reportId" value="42" autocomplete="off">
+                </div>
+            </div>
+
             <div class="actions">
-                <button class="btn-green" onclick="loadReport('/a02/vulnerable/debug-error?reportId=1')">
-                    Normal request: get existing report
+                <button class="btn-red" onclick="loadVulnerableReport()">
+                    Run vulnerable: return debug details
                 </button>
 
-                <button class="btn-red" onclick="loadReport('/a02/vulnerable/debug-error?reportId=42')">
-                    Vulnerable request: missing report leaks internals
-                </button>
-
-                <button class="btn-yellow" onclick="loadReport('/a02/vulnerable/debug-error?reportId=abc')">
-                    Vulnerable request: invalid report id leaks internals
-                </button>
-
-                <button class="btn-blue" onclick="loadReport('/a02/fixed/debug-error?reportId=42')">
-                    Fixed request: missing report hides internals
+                <button class="btn-blue" onclick="loadFixedReport()">
+                    Run fixed: return generic error
                 </button>
             </div>
 
             <div class="hint">
-                The vulnerable endpoint returns a detailed debug response.
-                The fixed endpoint logs the exception on the server side and returns only
-                <code>Internal server error</code>.
+                Try <code>1</code>, <code>2</code>, <code>42</code>, or <code>abc</code>.
+                The vulnerable endpoint leaks internal details when an error occurs.
             </div>
 
             <div class="request-line" id="requestLine">
@@ -170,14 +102,28 @@
 
 <script src="../assets/js/lab.js"></script>
 <script>
-  function loadReport(path) {
-    return sendJsonGetRequest({
-      path: path
-    });
-  }
+    function currentReportId() {
+        return document.getElementById('reportId').value;
+    }
 
-  renderLabFooter();
+    function loadVulnerableReport() {
+        return loadReport('/a02/vulnerable/debug-error');
+    }
+
+    function loadFixedReport() {
+        return loadReport('/a02/fixed/debug-error');
+    }
+
+    function loadReport(basePath) {
+        const reportId = currentReportId();
+        const path = `${basePath}?reportId=${encodeURIComponent(reportId)}`;
+
+        return sendJsonGetRequest({
+            path: path
+        });
+    }
+
+    renderLabFooter();
 </script>
 </body>
 </html>
-```
