@@ -1,0 +1,48 @@
+rules:
+  - id: owasp-java-vulnerabilities.a04.password-parameter-to-sha256-hash
+    languages:
+      - java
+    severity: ERROR
+    mode: taint
+    message: >
+      Password from HTTP request parameters flows into SHA-256 based password
+      hashing. Fast hashes such as SHA-256 are not suitable for password storage.
+      Use a dedicated password hashing algorithm such as BCrypt, Argon2id, or
+      PBKDF2 with salt and work factor.
+    metadata:
+      category: security
+      project_case: "A04:2025 - Cryptographic Failures"
+      rule_type: "taint-vulnerability"
+      confidence: HIGH
+      cwe:
+        - "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+        - "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+
+    pattern-sources:
+      - patterns:
+          - pattern: |
+              $REQUEST.getParameter($PARAM)
+          - metavariable-regex:
+              metavariable: $PARAM
+              regex: '"(?i)(password|passwd|pwd|pass)"'
+
+    pattern-sinks:
+      - patterns:
+          - pattern: |
+              Sha256PasswordHasher.hash($PASSWORD)
+          - focus-metavariable: $PASSWORD
+
+      - patterns:
+          - pattern: |
+              $HASHER.sha256($PASSWORD)
+          - focus-metavariable: $PASSWORD
+
+      - patterns:
+          - pattern: |
+              $HASHER.sha256Hash($PASSWORD)
+          - focus-metavariable: $PASSWORD
+
+      - patterns:
+          - pattern: |
+              $HASHER.hashSha256($PASSWORD)
+          - focus-metavariable: $PASSWORD

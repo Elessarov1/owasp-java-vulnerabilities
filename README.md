@@ -17,6 +17,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
   - [A01:2025 Broken Access Control](#a012025-broken-access-control)
   - [A02:2025 Security Misconfiguration](#a022025-security-misconfiguration)
   - [A03:2025 Software Supply Chain Failures](#a032025-software-supply-chain-failures)
+  - [A04:2025 Cryptographic Failures](#a042025-cryptographic-failures)
 - [Static Analysis with Semgrep](#static-analysis-with-semgrep)
   - [Local Semgrep Usage](#local-semgrep-usage)
   - [Reports](#reports)
@@ -62,7 +63,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 | A01:2025 Broken Access Control                 | Completed   | IDOR with document access                 |
 | A02:2025 Security Misconfiguration             | Completed   | Stack trace and internal details exposure |
 | A03:2025 Software Supply Chain Failures        | Completed   | Unsafe template interpolation             |
-| A04:2025 Cryptographic Failures                | Planned     | Weak password hashing                     |
+| A04:2025 Cryptographic Failures                | Completed   | Weak password hashing                     |
 | A05:2025 Injection                             | Planned     | SQL Injection with JDBC                   |
 | A06:2025 Insecure Design                       | Planned     | Missing idempotency in payment flow       |
 | A07:2025 Authentication Failures               | Planned     | Weak remember-me token                    |
@@ -121,6 +122,23 @@ Covered topics:
 * Dependabot alerts and dependency updates
 * Secure use of predefined templates
 
+### A04:2025 Cryptographic Failures
+
+The fourth completed module demonstrates a cryptographic failure caused by weak password hashing.
+
+It shows why fast unsalted hashes such as SHA-256 are not suitable for password storage and how to fix the issue by using BCrypt with a cost parameter and a random salt.
+
+The fixed version stores a BCrypt password hash. The hash string includes the algorithm marker, cost parameter, salt, and hash value.
+
+Covered topics:
+
+* Weak password hashing
+* Fast hashes vs password hashing algorithms
+* Salt and work factor
+* BCrypt password storage
+* Password hash verification
+* Negative SAST data-flow signal: password parameter flowing into SHA-256 hashing
+
 ## Static Analysis with Semgrep
 
 This project includes custom Semgrep rules for educational SAST demonstrations.
@@ -142,6 +160,7 @@ Current rule coverage:
 | A01:2025 Broken Access Control | Detect suspicious object lookup by id inside servlet code |
 | A02:2025 Security Misconfiguration | Detect unsafe exception handling patterns |
 | A03:2025 Software Supply Chain Failures | Detect HTTP input flowing into unsafe template interpolation |
+| A04:2025 Cryptographic Failures | Detect password parameters flowing into SHA-256 based password hashing |
 
 The detailed finding messages are available directly in Semgrep output and GitHub Code Scanning reports.
 

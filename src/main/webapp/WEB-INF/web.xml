@@ -94,4 +94,24 @@
         <url-pattern>/a03/fixed/template-preview</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>A04VulnerablePasswordRegistrationServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a04_cryptographic_failures.vulnerable.VulnerablePasswordRegistrationServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A04VulnerablePasswordRegistrationServlet</servlet-name>
+        <url-pattern>/a04/vulnerable/register</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>A04FixedPasswordRegistrationServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a04_cryptographic_failures.fixed.FixedPasswordRegistrationServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A04FixedPasswordRegistrationServlet</servlet-name>
+        <url-pattern>/a04/fixed/register</url-pattern>
+    </servlet-mapping>
+
 </web-app>

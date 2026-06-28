@@ -19,6 +19,7 @@ ext {
 dependencies {
     providedCompile "jakarta.servlet:jakarta.servlet-api:${servletApiVersion}"
 
+    implementation 'at.favre.lib:bcrypt:0.10.2'
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation 'org.apache.commons:commons-text:1.9'
 
