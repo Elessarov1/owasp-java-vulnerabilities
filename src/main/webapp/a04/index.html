@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP A04 — Cryptographic Failures</title>
+    <link rel="stylesheet" href="../assets/css/lab.css">
+
+    <style>
+        .crypto-box {
+            padding: 16px;
+            border-radius: 14px;
+            background: var(--panel-light);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .crypto-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .crypto-meta {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .crypto-meta code {
+            color: var(--blue);
+            background: #020617;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-family: Consolas, monospace;
+        }
+
+        .hash-comparison {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .hash-card {
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #020617;
+        }
+
+        .hash-card.danger {
+            border-color: rgba(239, 68, 68, 0.35);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .hash-card.safe {
+            border-color: rgba(34, 197, 94, 0.35);
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .hash-card-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .hash-card-text {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .danger-list,
+        .safe-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .danger-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #fecaca;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .safe-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            color: #bbf7d0;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #020617;
+            color: var(--text);
+            font-family: Consolas, monospace;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--blue);
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="header">
+        <div class="label">OWASP A04</div>
+        <h1>Cryptographic Failures — Weak Password Hashing</h1>
+        <p class="subtitle">
+            This page demonstrates why fast unsalted hashes such as SHA-256 are not suitable
+            for password storage, and how BCrypt improves password hashing with salt and cost.
+        </p>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <h2>Demo Scenario</h2>
+
+            <div class="crypto-box">
+                <div class="crypto-title">Password Registration</div>
+                <div class="crypto-meta">
+                    The vulnerable endpoint stores passwords using <code>SHA-256</code>.
+                    The fixed endpoint stores passwords using <code>BCrypt</code>.
+                </div>
+            </div>
+
+            <div class="hash-comparison">
+                <div class="hash-card danger">
+                    <div class="hash-card-title">Vulnerable flow</div>
+                    <div class="hash-card-text">
+                        The same password always produces the same SHA-256 hash.
+                        This makes leaked password hashes easier to attack offline.
+                    </div>
+                </div>
+
+                <div class="hash-card safe">
+                    <div class="hash-card-title">Fixed flow</div>
+                    <div class="hash-card-text">
+                        BCrypt stores a random salt and cost inside the final hash string.
+                        The same password produces different hashes.
+                    </div>
+                </div>
+            </div>
+
+            <div class="danger-list">
+                <div class="danger-item">SHA-256 is too fast for password storage</div>
+                <div class="danger-item">No work factor slows down brute force attempts</div>
+                <div class="danger-item">No unique salt means identical passwords produce identical hashes</div>
+            </div>
+
+            <div class="safe-list">
+                <div class="safe-item">BCrypt is designed for password storage</div>
+                <div class="safe-item">BCrypt includes a configurable cost parameter</div>
+                <div class="safe-item">BCrypt stores salt and cost inside the hash string</div>
+            </div>
+
+            <div class="explanation">
+                Run both requests with the same username and password. The vulnerable endpoint will return
+                a deterministic SHA-256 hash. The fixed endpoint will return a BCrypt hash with embedded
+                salt and cost.
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="result-header">
+                <h2>Run Requests</h2>
+                <div class="status" id="status">No request yet</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" value="alice" autocomplete="off">
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" value="Password123!" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-red" onclick="registerVulnerable()">
+                    Register vulnerable: SHA-256
+                </button>
+
+                <button class="btn-blue" onclick="registerFixed()">
+                    Register fixed: BCrypt
+                </button>
+            </div>
+
+            <div class="hint">
+                Press the vulnerable button several times with the same password: the SHA-256 hash stays the same.
+                Press the fixed button several times: the BCrypt hash changes because a new random salt is used.
+            </div>
+
+            <div class="request-line" id="requestLine">
+                Request will be shown here
+            </div>
+
+            <pre id="result">Response will be shown here</pre>
+        </section>
+    </main>
+
+    <footer class="page-footer" id="labFooter"></footer>
+</div>
+
+<script src="../assets/js/lab.js"></script>
+<script>
+    async function sendFormPostRequest({ path, formData, requestText }) {
+        const statusBadge = document.getElementById('status');
+        const requestLine = document.getElementById('requestLine');
+        const result = document.getElementById('result');
+
+        const url = contextPath() + path;
+        const body = new URLSearchParams(formData);
+
+        requestLine.textContent = requestText || `POST ${path}\nContent-Type: application/x-www-form-urlencoded\n\n${body}`;
+        setLoading(statusBadge, result);
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: body
+            });
+
+            const responseBody = await readResponseBody(response);
+
+            setResponseStatus(statusBadge, response);
+            result.textContent = formatBody(responseBody);
+        } catch (error) {
+            setRequestFailed(statusBadge, result, error);
+        }
+    }
+
+    function registerVulnerable() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        return sendRegistration('/a04/vulnerable/register', username, password);
+    }
+
+    function registerFixed() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        return sendRegistration('/a04/fixed/register', username, password);
+    }
+
+    function sendRegistration(path, username, password) {
+        const formData = {
+            username: username,
+            password: password
+        };
+
+        return sendFormPostRequest({
+            path: path,
+            formData: formData,
+            requestText:
+                `POST ${path}\n` +
+                'Content-Type: application/x-www-form-urlencoded\n\n' +
+                `username=${username}&password=${password}`
+        });
+    }
+
+    renderLabFooter();
+</script>
+</body>
+</html>

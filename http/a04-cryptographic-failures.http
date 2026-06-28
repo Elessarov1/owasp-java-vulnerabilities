@@ -1,0 +1,40 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A04:2025 Cryptographic Failures - vulnerable registration
+### Expected: 200 OK
+### Security issue: password is hashed with fast unsalted SHA-256
+POST {{baseUrl}}/a04/vulnerable/register
+Content-Type: application/x-www-form-urlencoded
+
+username=alice&password=Password123!
+
+### A04:2025 Cryptographic Failures - vulnerable registration same password again
+### Expected: 200 OK
+### Security issue: same password produces the same SHA-256 hash
+POST {{baseUrl}}/a04/vulnerable/register
+Content-Type: application/x-www-form-urlencoded
+
+username=bob&password=Password123!
+
+### A04:2025 Cryptographic Failures - fixed registration
+### Expected: 200 OK
+### Fixed behavior: password is hashed with BCrypt
+POST {{baseUrl}}/a04/fixed/register
+Content-Type: application/x-www-form-urlencoded
+
+username=alice&password=Password123!
+
+### A04:2025 Cryptographic Failures - fixed registration same password again
+### Expected: 200 OK
+### Fixed behavior: same password produces a different BCrypt hash because of random salt
+POST {{baseUrl}}/a04/fixed/register
+Content-Type: application/x-www-form-urlencoded
+
+username=bob&password=Password123!
+
+### A04:2025 Cryptographic Failures - missing password
+### Expected: 400 Bad Request
+POST {{baseUrl}}/a04/fixed/register
+Content-Type: application/x-www-form-urlencoded
+
+username=alice
