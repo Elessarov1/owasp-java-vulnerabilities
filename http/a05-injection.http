@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A05:2025 Injection - vulnerable normal search
+### Expected: 200 OK and only the alice account
+GET {{baseUrl}}/a05/vulnerable/users?username=alice
+Accept: application/json
+
+### A05:2025 Injection - vulnerable SQL injection
+### Expected: 200 OK and all accounts
+### Security issue: the username changes the SQL WHERE clause
+GET {{baseUrl}}/a05/vulnerable/users?username=%27%20OR%20%271%27%3D%271
+Accept: application/json
+
+### A05:2025 Injection - fixed normal search
+### Expected: 200 OK and only the alice account
+GET {{baseUrl}}/a05/fixed/users?username=alice
+Accept: application/json
+
+### A05:2025 Injection - fixed injection attempt
+### Expected: 200 OK and an empty users array
+### Fixed behavior: PreparedStatement treats the payload as a string value
+GET {{baseUrl}}/a05/fixed/users?username=%27%20OR%20%271%27%3D%271
+Accept: application/json
+
+### A05:2025 Injection - missing username
+### Expected: 400 Bad Request
+GET {{baseUrl}}/a05/fixed/users
+Accept: application/json

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP A05 — Injection</title>
+    <link rel="stylesheet" href="../assets/css/lab.css">
+</head>
+<body>
+<div class="page">
+    <header class="header">
+        <div class="label">OWASP A05</div>
+        <h1>Injection — SQL Injection with JDBC</h1>
+        <p class="subtitle">
+            This page demonstrates how SQL built from user-controlled text changes query semantics,
+            and how a prepared statement keeps the same input as data.
+        </p>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <h2>Demo Scenario</h2>
+
+            <div class="info-box">
+                <div class="info-title">Search by username</div>
+                <div class="info-meta">
+                    The vulnerable endpoint formats the username into SQL executed by a JDBC
+                    <code>Statement</code>. The fixed endpoint binds it through a
+                    <code>PreparedStatement</code>.
+                </div>
+            </div>
+
+            <div class="flow">
+                <div class="flow-step danger">
+                    <div class="flow-step-title">Vulnerable flow</div>
+                    <div class="flow-step-text">
+                        Input becomes part of the SQL command. The payload closes the string literal
+                        and adds a condition that matches every user.
+                    </div>
+                </div>
+
+                <div class="flow-step safe">
+                    <div class="flow-step-title">Fixed flow</div>
+                    <div class="flow-step-text">
+                        SQL structure is constant. JDBC binds the username to a placeholder, so SQL
+                        syntax in the value is not evaluated.
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item danger">String formatting mixes untrusted data with SQL</div>
+                <div class="state-item danger">The injected predicate returns all user records</div>
+                <div class="state-item danger">Database data is exposed outside the intended search</div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item safe">Prepared SQL uses a <code>?</code> placeholder</div>
+                <div class="state-item safe">The username is bound with <code>setString</code></div>
+                <div class="state-item safe">The injection payload is searched as a literal username</div>
+            </div>
+
+            <div class="explanation">
+                First search for <code>alice</code>. Then use the prefilled injection payload.
+                The vulnerable endpoint returns every account, while the fixed endpoint returns an
+                empty result because no username equals the payload.
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="result-header">
+                <h2>Run Requests</h2>
+                <div class="status" id="status">No request yet</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="username">Username or SQL injection payload</label>
+                    <input id="username" value="' OR '1'='1" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-red" onclick="searchVulnerable()">
+                    Search vulnerable: Statement
+                </button>
+
+                <button class="btn-blue" onclick="searchFixed()">
+                    Search fixed: PreparedStatement
+                </button>
+            </div>
+
+            <div class="hint">
+                Try <code>alice</code> for a normal lookup, then
+                <code>' OR '1'='1</code> to compare vulnerable and fixed behavior.
+            </div>
+
+            <div class="request-line" id="requestLine">
+                Request will be shown here
+            </div>
+
+            <pre id="result">Response will be shown here</pre>
+        </section>
+    </main>
+
+    <footer class="page-footer" id="labFooter"></footer>
+</div>
+
+<script src="../assets/js/lab.js"></script>
+<script>
+    function searchVulnerable() {
+        return searchUsers('/a05/vulnerable/users');
+    }
+
+    function searchFixed() {
+        return searchUsers('/a05/fixed/users');
+    }
+
+    function searchUsers(endpoint) {
+        const username = document.getElementById('username').value;
+        const path = endpoint + '?username=' + encodeURIComponent(username);
+
+        return sendJsonGetRequest({
+            path: path,
+            requestText: `GET ${endpoint}?username=${username}`
+        });
+    }
+
+    renderLabFooter();
+</script>
+</body>
+</html>

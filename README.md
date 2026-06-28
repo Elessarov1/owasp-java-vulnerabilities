@@ -18,6 +18,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
   - [A02:2025 Security Misconfiguration](#a022025-security-misconfiguration)
   - [A03:2025 Software Supply Chain Failures](#a032025-software-supply-chain-failures)
   - [A04:2025 Cryptographic Failures](#a042025-cryptographic-failures)
+  - [A05:2025 Injection](#a052025-injection)
 - [Static Analysis with Semgrep](#static-analysis-with-semgrep)
   - [Local Semgrep Usage](#local-semgrep-usage)
   - [Reports](#reports)
@@ -58,18 +59,18 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 
 ## Examples
 
-| OWASP Category                                 | Status      | Example                                   |
-|------------------------------------------------|-------------|-------------------------------------------|
-| A01:2025 Broken Access Control                 | Completed   | IDOR with document access                 |
-| A02:2025 Security Misconfiguration             | Completed   | Stack trace and internal details exposure |
-| A03:2025 Software Supply Chain Failures        | Completed   | Unsafe template interpolation             |
-| A04:2025 Cryptographic Failures                | Completed   | Weak password hashing                     |
-| A05:2025 Injection                             | Planned     | SQL Injection with JDBC                   |
-| A06:2025 Insecure Design                       | Planned     | Missing idempotency in payment flow       |
-| A07:2025 Authentication Failures               | Planned     | Weak remember-me token                    |
-| A08:2025 Software or Data Integrity Failures   | Planned     | Unsigned config/plugin update             |
-| A09:2025 Security Logging & Alerting Failures  | Planned     | Missing audit log                         |
-| A10:2025 Mishandling of Exceptional Conditions | Planned     | Leaking stack traces and internal errors  |
+| OWASP Category                                 | Status    | Example                                   | Demo page                                                |
+|------------------------------------------------|-----------|-------------------------------------------|----------------------------------------------------------|
+| A01:2025 Broken Access Control                 | Completed | IDOR with document access                 | http://localhost:8080/owasp-java-vulnerabilities/a01/    |
+| A02:2025 Security Misconfiguration             | Completed | Stack trace and internal details exposure | http://localhost:8080/owasp-java-vulnerabilities/a02/    |
+| A03:2025 Software Supply Chain Failures        | Completed | Unsafe template interpolation             | http://localhost:8080/owasp-java-vulnerabilities/a03/    |
+| A04:2025 Cryptographic Failures                | Completed | Weak password hashing                     | http://localhost:8080/owasp-java-vulnerabilities/a04/    |
+| A05:2025 Injection                             | Completed | SQL Injection with JDBC                   | http://localhost:8080/owasp-java-vulnerabilities/a05/    |
+| A06:2025 Insecure Design                       | Planned   | Missing idempotency in payment flow       | —                                                        |
+| A07:2025 Authentication Failures               | Planned   | Weak remember-me token                    | —                                                        |
+| A08:2025 Software or Data Integrity Failures   | Planned   | Unsigned config/plugin update             | —                                                        |
+| A09:2025 Security Logging & Alerting Failures  | Planned   | Missing audit log                         | —                                                        |
+| A10:2025 Mishandling of Exceptional Conditions | Planned   | Leaking stack traces and internal errors  | —                                                        |
 
 ## Completed Modules
 
@@ -139,6 +140,26 @@ Covered topics:
 * Password hash verification
 * Negative SAST data-flow signal: password parameter flowing into SHA-256 hashing
 
+### A05:2025 Injection
+
+The fifth completed module demonstrates SQL injection in a JDBC user search.
+
+The vulnerable version formats a user-controlled username directly into a SQL query and executes it
+through `Statement`. An attacker can alter the `WHERE` clause and retrieve records outside the
+intended search.
+
+The fixed version keeps the SQL structure constant and binds the username through a
+`PreparedStatement` parameter.
+
+Covered topics:
+
+* SQL injection through string-formatted queries
+* JDBC `Statement` and `PreparedStatement`
+* Parameter binding
+* Query structure vs query data
+* Exploit verification with HTTP requests
+* SAST detection of formatted SQL passed to JDBC
+
 ## Static Analysis with Semgrep
 
 This project includes custom Semgrep rules for educational SAST demonstrations.
@@ -161,6 +182,7 @@ Current rule coverage:
 | A02:2025 Security Misconfiguration | Detect unsafe exception handling patterns |
 | A03:2025 Software Supply Chain Failures | Detect HTTP input flowing into unsafe template interpolation |
 | A04:2025 Cryptographic Failures | Detect password parameters flowing into SHA-256 based password hashing |
+| A05:2025 Injection | Detect dynamically formatted SQL executed through JDBC Statement |
 
 The detailed finding messages are available directly in Semgrep output and GitHub Code Scanning reports.
 

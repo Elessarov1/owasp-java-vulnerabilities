@@ -1,0 +1,22 @@
+rules:
+  - id: owasp-java-vulnerabilities.a05.formatted-sql-to-jdbc-statement
+    languages:
+      - java
+    severity: ERROR
+    message: >
+      A dynamically formatted SQL query is executed through JDBC Statement.
+      Keep SQL structure constant and bind untrusted values with
+      PreparedStatement parameters.
+    metadata:
+      category: security
+      project_case: "A05:2025 - Injection"
+      rule_type: "insecure-pattern"
+      confidence: HIGH
+      cwe:
+        - "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+
+    patterns:
+      - pattern-inside: |
+          var $SQL = $TEMPLATE.formatted(...);
+          ...
+      - pattern: $STATEMENT.executeQuery($SQL)

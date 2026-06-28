@@ -114,4 +114,24 @@
         <url-pattern>/a04/fixed/register</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>A05VulnerableUserSearchServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a05_injection.vulnerable.VulnerableUserSearchServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A05VulnerableUserSearchServlet</servlet-name>
+        <url-pattern>/a05/vulnerable/users</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>A05FixedUserSearchServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a05_injection.fixed.FixedUserSearchServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A05FixedUserSearchServlet</servlet-name>
+        <url-pattern>/a05/fixed/users</url-pattern>
+    </servlet-mapping>
+
 </web-app>
