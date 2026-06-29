@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP A06 — Insecure Design</title>
+    <link rel="stylesheet" href="../assets/css/lab.css">
+</head>
+<body>
+<div class="page">
+    <header class="header">
+        <div class="label">OWASP A06</div>
+        <h1>Insecure Design — Missing Workflow Validation</h1>
+        <p class="subtitle">
+            This page demonstrates why validating an enum value is not enough:
+            the server must also enforce which order state transitions are allowed.
+        </p>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <h2>Demo Scenario</h2>
+
+            <div class="info-box">
+                <div class="info-title">Order ORDER-1001 starts in CREATED</div>
+                <div class="info-meta">
+                    A refund is meaningful only after payment. Try requesting
+                    <code>REFUNDED</code> directly while the order is still
+                    <code>CREATED</code>.
+                </div>
+            </div>
+
+            <div class="flow">
+                <div class="flow-step danger">
+                    <div class="flow-step-title">Vulnerable flow</div>
+                    <div class="flow-step-text">
+                        The requested value is a valid enum, so the service writes it directly.
+                        The impossible transition <code>CREATED → REFUNDED</code> succeeds.
+                    </div>
+                </div>
+
+                <div class="flow-step safe">
+                    <div class="flow-step-title">Fixed flow</div>
+                    <div class="flow-step-text">
+                        A server-side state machine defines valid transitions.
+                        From <code>CREATED</code>, only <code>PAID</code> and
+                        <code>CANCELLED</code> are accepted.
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item danger">Client chooses the next domain state</div>
+                <div class="state-item danger">Enum validation checks syntax, not business meaning</div>
+                <div class="state-item danger">Unexpected workflow states become persistent</div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item safe">The server owns the transition graph</div>
+                <div class="state-item safe">Invalid transitions return <code>409 Conflict</code></div>
+                <div class="state-item safe">State remains unchanged after rejection</div>
+            </div>
+
+            <div class="explanation">
+                The valid delivery path is
+                <code>CREATED → PAID → SHIPPED → DELIVERED</code>.
+                A paid order can also transition to <code>REFUNDED</code>.
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="result-header">
+                <h2>Run Requests</h2>
+                <div class="status" id="status">No request yet</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="orderId">Order ID</label>
+                    <input id="orderId" value="ORDER-1001" autocomplete="off">
+                </div>
+
+                <div class="field">
+                    <label for="requestedStatus">Requested status</label>
+                    <select id="requestedStatus">
+                        <option value="REFUNDED" selected>REFUNDED</option>
+                        <option value="PAID">PAID</option>
+                        <option value="SHIPPED">SHIPPED</option>
+                        <option value="DELIVERED">DELIVERED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-red" onclick="changeVulnerable()">
+                    Change vulnerable
+                </button>
+
+                <button class="btn-blue" onclick="changeFixed()">
+                    Change fixed
+                </button>
+
+                <button onclick="showStates()">Show both states</button>
+                <button onclick="resetDemo()">Reset demo</button>
+            </div>
+
+            <div class="hint">
+                Reset the demo and send <code>REFUNDED</code> to both endpoints.
+                Vulnerable returns 200; fixed returns 409 and keeps the order in
+                <code>CREATED</code>.
+            </div>
+
+            <div class="request-line" id="requestLine">
+                Request will be shown here
+            </div>
+
+            <pre id="result">Response will be shown here</pre>
+        </section>
+    </main>
+
+    <footer class="page-footer" id="labFooter"></footer>
+</div>
+
+<script src="../assets/js/lab.js"></script>
+<script>
+    function changeVulnerable() {
+        return changeStatus('/a06/vulnerable/orders');
+    }
+
+    function changeFixed() {
+        return changeStatus('/a06/fixed/orders');
+    }
+
+    function changeStatus(path) {
+        const orderId = document.getElementById('orderId').value;
+        const status = document.getElementById('requestedStatus').value;
+
+        return sendFormPostRequest({
+            path: path,
+            formData: {
+                orderId: orderId,
+                status: status
+            },
+            requestText:
+                `POST ${path}\n` +
+                'Content-Type: application/x-www-form-urlencoded\n\n' +
+                `orderId=${orderId}&status=${status}`
+        });
+    }
+
+    async function showStates() {
+        const orderId = document.getElementById('orderId').value;
+        const vulnerablePath = '/a06/vulnerable/orders?orderId=' + encodeURIComponent(orderId);
+        const fixedPath = '/a06/fixed/orders?orderId=' + encodeURIComponent(orderId);
+
+        return runCombinedRequest(
+            `GET ${vulnerablePath}\nGET ${fixedPath}`,
+            [
+                ['vulnerable', 'GET', vulnerablePath],
+                ['fixed', 'GET', fixedPath]
+            ]
+        );
+    }
+
+    async function resetDemo() {
+        return runCombinedRequest(
+            'DELETE /a06/vulnerable/orders\nDELETE /a06/fixed/orders',
+            [
+                ['vulnerable', 'DELETE', '/a06/vulnerable/orders'],
+                ['fixed', 'DELETE', '/a06/fixed/orders']
+            ]
+        );
+    }
+
+    async function runCombinedRequest(requestText, requests) {
+        const statusBadge = document.getElementById('status');
+        const requestLine = document.getElementById('requestLine');
+        const result = document.getElementById('result');
+
+        requestLine.textContent = requestText;
+        setLoading(statusBadge, result);
+
+        try {
+            const responses = await Promise.all(requests.map(async ([name, method, path]) => {
+                const response = await fetch(contextPath() + path, {
+                    method: method,
+                    headers: {'Accept': 'application/json'}
+                });
+
+                return {
+                    name: name,
+                    status: response.status,
+                    body: await readResponseBody(response)
+                };
+            }));
+
+            const failed = responses.some(response => response.status >= 400);
+            statusBadge.className = failed ? 'status error' : 'status ok';
+            statusBadge.textContent = failed ? 'Completed with errors' : '200 OK';
+            result.textContent = JSON.stringify(responses, null, 2);
+        } catch (error) {
+            setRequestFailed(statusBadge, result, error);
+        }
+    }
+
+    renderLabFooter();
+</script>
+</body>
+</html>

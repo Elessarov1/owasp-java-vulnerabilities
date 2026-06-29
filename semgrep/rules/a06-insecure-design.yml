@@ -1,0 +1,33 @@
+rules:
+  - id: owasp-java-vulnerabilities.a06.unvalidated-workflow-transition
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      A requested state is written directly without an explicit workflow
+      transition check. A syntactically valid state may still violate business
+      rules. Model allowed transitions on the server and reject invalid state
+      changes before updating persistent state.
+    metadata:
+      category: security
+      project_case: "A06:2025 - Insecure Design"
+      rule_type: "design-review-signal"
+      confidence: MEDIUM
+      cwe:
+        - "CWE-841: Improper Enforcement of Behavioral Workflow"
+
+    patterns:
+      - pattern-inside: |
+          public $RETURN_TYPE $METHOD(..., OrderStatus $REQUESTED_STATUS) {
+            ...
+          }
+      - pattern: |
+          $REPOSITORY.updateStatus($ORDER_ID, $REQUESTED_STATUS)
+      - pattern-not-inside: |
+          public $RETURN_TYPE $METHOD(..., OrderStatus $REQUESTED_STATUS) {
+            ...
+            if (!$ALLOWED_TRANSITIONS.contains($REQUESTED_STATUS)) {
+              ...
+            }
+            ...
+          }

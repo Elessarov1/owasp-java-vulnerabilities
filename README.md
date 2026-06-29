@@ -19,11 +19,11 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
   - [A03:2025 Software Supply Chain Failures](#a032025-software-supply-chain-failures)
   - [A04:2025 Cryptographic Failures](#a042025-cryptographic-failures)
   - [A05:2025 Injection](#a052025-injection)
+  - [A06:2025 Insecure Design](#a062025-insecure-design)
 - [Static Analysis with Semgrep](#static-analysis-with-semgrep)
   - [Local Semgrep Usage](#local-semgrep-usage)
   - [Reports](#reports)
   - [GitHub Code Scanning](#github-code-scanning)
-- [Finding Triage](#finding-triage)
 - [Suggested Learning Flow](#suggested-learning-flow)
 - [Disclaimer](#disclaimer)
 
@@ -66,7 +66,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 | A03:2025 Software Supply Chain Failures        | Completed | Unsafe template interpolation             | http://localhost:8080/owasp-java-vulnerabilities/a03/    |
 | A04:2025 Cryptographic Failures                | Completed | Weak password hashing                     | http://localhost:8080/owasp-java-vulnerabilities/a04/    |
 | A05:2025 Injection                             | Completed | SQL Injection with JDBC                   | http://localhost:8080/owasp-java-vulnerabilities/a05/    |
-| A06:2025 Insecure Design                       | Planned   | Missing idempotency in payment flow       | —                                                        |
+| A06:2025 Insecure Design                       | Completed | Missing order workflow validation         | http://localhost:8080/owasp-java-vulnerabilities/a06/    |
 | A07:2025 Authentication Failures               | Planned   | Weak remember-me token                    | —                                                        |
 | A08:2025 Software or Data Integrity Failures   | Planned   | Unsigned config/plugin update             | —                                                        |
 | A09:2025 Security Logging & Alerting Failures  | Planned   | Missing audit log                         | —                                                        |
@@ -160,6 +160,29 @@ Covered topics:
 * Exploit verification with HTTP requests
 * SAST detection of formatted SQL passed to JDBC
 
+### A06:2025 Insecure Design
+
+The sixth completed module demonstrates an insecure order workflow with no model of valid state
+transitions.
+
+The vulnerable version accepts any syntactically valid order status selected by the client and
+writes it directly. This allows impossible business transitions such as changing a newly created
+order directly from `CREATED` to `REFUNDED`.
+
+The fixed version uses an explicit server-side state machine. It checks the current order status,
+allows only defined transitions, and rejects invalid workflow changes without modifying persistent
+state.
+
+Covered topics:
+
+* Business logic and workflow vulnerabilities
+* Syntactic validation vs business rule validation
+* Server-side state machines
+* Explicit allowed state transitions
+* HTTP `409 Conflict` for invalid workflow changes
+* Atomic check-and-update operations
+* SAST review signals and the limits of automated design analysis
+
 ## Static Analysis with Semgrep
 
 This project includes custom Semgrep rules for educational SAST demonstrations.
@@ -183,6 +206,7 @@ Current rule coverage:
 | A03:2025 Software Supply Chain Failures | Detect HTTP input flowing into unsafe template interpolation |
 | A04:2025 Cryptographic Failures | Detect password parameters flowing into SHA-256 based password hashing |
 | A05:2025 Injection | Detect dynamically formatted SQL executed through JDBC Statement |
+| A06:2025 Insecure Design | Flag state updates without explicit workflow transition checks for review |
 
 The detailed finding messages are available directly in Semgrep output and GitHub Code Scanning reports.
 

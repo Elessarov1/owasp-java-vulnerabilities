@@ -1,0 +1,71 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A06:2025 Insecure Design - reset vulnerable workflow
+### Expected: 200 OK and status CREATED
+DELETE {{baseUrl}}/a06/vulnerable/orders
+Accept: application/json
+
+### A06:2025 Insecure Design - vulnerable impossible transition
+### Expected: 200 OK and currentStatus REFUNDED
+### Security issue: the server accepts CREATED -> REFUNDED without enforcing the workflow
+POST {{baseUrl}}/a06/vulnerable/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=REFUNDED
+
+### A06:2025 Insecure Design - vulnerable state after impossible transition
+### Expected: 200 OK and status REFUNDED
+GET {{baseUrl}}/a06/vulnerable/orders?orderId=ORDER-1001
+Accept: application/json
+
+### A06:2025 Insecure Design - reset fixed workflow
+### Expected: 200 OK and status CREATED
+DELETE {{baseUrl}}/a06/fixed/orders
+Accept: application/json
+
+### A06:2025 Insecure Design - fixed impossible transition
+### Expected: 409 Conflict; status remains CREATED
+### Fixed behavior: the server-side state machine rejects CREATED -> REFUNDED
+POST {{baseUrl}}/a06/fixed/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=REFUNDED
+
+### A06:2025 Insecure Design - fixed valid transition CREATED -> PAID
+### Expected: 200 OK and currentStatus PAID
+POST {{baseUrl}}/a06/fixed/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=PAID
+
+### A06:2025 Insecure Design - fixed valid transition PAID -> SHIPPED
+### Expected: 200 OK and currentStatus SHIPPED
+POST {{baseUrl}}/a06/fixed/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=SHIPPED
+
+### A06:2025 Insecure Design - fixed valid transition SHIPPED -> DELIVERED
+### Expected: 200 OK and currentStatus DELIVERED
+POST {{baseUrl}}/a06/fixed/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=DELIVERED
+
+### A06:2025 Insecure Design - unknown status
+### Expected: 400 Bad Request
+POST {{baseUrl}}/a06/fixed/orders
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+orderId=ORDER-1001&status=APPROVED
+
+### A06:2025 Insecure Design - unknown order
+### Expected: 404 Not Found
+GET {{baseUrl}}/a06/fixed/orders?orderId=ORDER-9999
+Accept: application/json

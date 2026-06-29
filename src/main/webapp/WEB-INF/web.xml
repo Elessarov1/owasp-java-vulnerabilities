@@ -134,4 +134,24 @@
         <url-pattern>/a05/fixed/users</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>A06VulnerableOrderWorkflowServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a06_insecure_design.vulnerable.VulnerableOrderWorkflowServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A06VulnerableOrderWorkflowServlet</servlet-name>
+        <url-pattern>/a06/vulnerable/orders</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>A06FixedOrderWorkflowServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a06_insecure_design.fixed.FixedOrderWorkflowServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A06FixedOrderWorkflowServlet</servlet-name>
+        <url-pattern>/a06/fixed/orders</url-pattern>
+    </servlet-mapping>
+
 </web-app>
