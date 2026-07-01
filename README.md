@@ -20,6 +20,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
   - [A04:2025 Cryptographic Failures](#a042025-cryptographic-failures)
   - [A05:2025 Injection](#a052025-injection)
   - [A06:2025 Insecure Design](#a062025-insecure-design)
+  - [A07:2025 Authentication Failures](#a072025-authentication-failures)
 - [Static Analysis with Semgrep](#static-analysis-with-semgrep)
   - [Local Semgrep Usage](#local-semgrep-usage)
   - [Reports](#reports)
@@ -45,7 +46,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 * JUnit 5
 * Semgrep
 * GitHub Actions
-* GitHub Code Scanning
+* GitHub Code Scanning3
 
 ## Project Structure
 
@@ -67,7 +68,7 @@ The lab follows the OWASP Top 10:2025 categories and focuses on practical secure
 | A04:2025 Cryptographic Failures                | Completed | Weak password hashing                     | http://localhost:8080/owasp-java-vulnerabilities/a04/    |
 | A05:2025 Injection                             | Completed | SQL Injection with JDBC                   | http://localhost:8080/owasp-java-vulnerabilities/a05/    |
 | A06:2025 Insecure Design                       | Completed | Missing order workflow validation         | http://localhost:8080/owasp-java-vulnerabilities/a06/    |
-| A07:2025 Authentication Failures               | Planned   | Weak remember-me token                    | —                                                        |
+| A07:2025 Authentication Failures               | Completed | Missing brute-force protection            | http://localhost:8080/owasp-java-vulnerabilities/a07/    |
 | A08:2025 Software or Data Integrity Failures   | Planned   | Unsigned config/plugin update             | —                                                        |
 | A09:2025 Security Logging & Alerting Failures  | Planned   | Missing audit log                         | —                                                        |
 | A10:2025 Mishandling of Exceptional Conditions | Planned   | Leaking stack traces and internal errors  | —                                                        |
@@ -183,6 +184,29 @@ Covered topics:
 * Atomic check-and-update operations
 * SAST review signals and the limits of automated design analysis
 
+### A07:2025 Authentication Failures
+
+The seventh completed module demonstrates an authentication endpoint that does not restrict
+repeated password attempts.
+
+The vulnerable version verifies every password candidate without tracking previous failures.
+An automated attacker can continue a password spraying sequence until a valid password is found.
+
+The fixed version applies temporary account-based and client-based throttling before password
+verification. After three failed attempts, further requests receive `429 Too Many Requests` with
+a `Retry-After` header. Both versions use the same BCrypt credential verification so the example
+stays focused on authentication attempt limiting rather than password storage.
+
+Covered topics:
+
+* Brute-force and password spraying attacks
+* Account-based and client-based attempt limiting
+* Temporary cooldowns and account lockout tradeoffs
+* Generic authentication error messages
+* Username enumeration through response behavior and timing
+* HTTP `429 Too Many Requests` and `Retry-After`
+* SAST review signals for missing authentication throttling
+
 ## Static Analysis with Semgrep
 
 This project includes custom Semgrep rules for educational SAST demonstrations.
@@ -207,6 +231,7 @@ Current rule coverage:
 | A04:2025 Cryptographic Failures | Detect password parameters flowing into SHA-256 based password hashing |
 | A05:2025 Injection | Detect dynamically formatted SQL executed through JDBC Statement |
 | A06:2025 Insecure Design | Flag state updates without explicit workflow transition checks for review |
+| A07:2025 Authentication Failures | Flag credential verification without login attempt limiting |
 
 The detailed finding messages are available directly in Semgrep output and GitHub Code Scanning reports.
 

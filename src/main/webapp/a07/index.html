@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP A07 — Authentication Failures</title>
+    <link rel="stylesheet" href="../assets/css/lab.css">
+</head>
+<body>
+<div class="page">
+    <header class="header">
+        <div class="label">OWASP A07</div>
+        <h1>Authentication Failures — Password Spraying</h1>
+        <p class="subtitle">
+            This page demonstrates how unlimited login attempts let an automated attacker
+            test password candidates, and how temporary account and client throttling
+            interrupts the attack.
+        </p>
+    </header>
+
+    <main class="grid">
+        <section class="card">
+            <h2>Demo Scenario</h2>
+
+            <div class="info-box">
+                <div class="info-title">Demo account: alice</div>
+                <div class="info-meta">
+                    The password list ends with the valid password
+                    <code>Summer2026!</code>. Both implementations use BCrypt;
+                    the security difference is login-attempt limiting.
+                </div>
+            </div>
+
+            <div class="flow">
+                <div class="flow-step danger">
+                    <div class="flow-step-title">Vulnerable flow</div>
+                    <div class="flow-step-text">
+                        Every request reaches password verification. The fifth candidate
+                        succeeds because previous failures have no effect.
+                    </div>
+                </div>
+
+                <div class="flow-step safe">
+                    <div class="flow-step-title">Fixed flow</div>
+                    <div class="flow-step-text">
+                        After three failures, further attempts receive
+                        <code>429 Too Many Requests</code> and a
+                        <code>Retry-After</code> header for 30 seconds.
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item danger">No failed-attempt counter</div>
+                <div class="state-item danger">No delay or temporary block</div>
+                <div class="state-item danger">Automated guessing continues until success</div>
+            </div>
+
+            <div class="state-list">
+                <div class="state-item safe">Failures tracked by account and request source</div>
+                <div class="state-item safe">Limits checked before BCrypt verification</div>
+                <div class="state-item safe">Generic errors do not reveal whether a user exists</div>
+            </div>
+
+            <div class="explanation">
+                A production authentication system should combine throttling with MFA,
+                breached-password checks, secure session management, logging, alerting,
+                and a trusted authentication framework.
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="result-header">
+                <h2>Run Requests</h2>
+                <div class="status" id="status">No request yet</div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" value="alice" autocomplete="off">
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" value="Summer2026!" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-red" onclick="loginVulnerable()">
+                    Login vulnerable
+                </button>
+
+                <button class="btn-blue" onclick="loginFixed()">
+                    Login fixed
+                </button>
+
+                <button class="btn-red" onclick="runPasswordSpray('/a07/vulnerable/login')">
+                    Run vulnerable password spray
+                </button>
+
+                <button class="btn-blue" onclick="runPasswordSpray('/a07/fixed/login')">
+                    Run fixed password spray
+                </button>
+
+                <button onclick="resetAttempts()">Reset attempt limiter</button>
+            </div>
+
+            <div class="hint">
+                Spray candidates:
+                <code>Password1!</code>,
+                <code>Qwerty123!</code>,
+                <code>Summer2024!</code>,
+                <code>Summer2025!</code>,
+                <code>Summer2026!</code>.
+            </div>
+
+            <div class="request-line" id="requestLine">
+                Request will be shown here
+            </div>
+
+            <pre id="result">Response will be shown here</pre>
+        </section>
+    </main>
+
+    <footer class="page-footer" id="labFooter"></footer>
+</div>
+
+<script src="../assets/js/lab.js"></script>
+<script>
+    const passwordCandidates = [
+        'Password1!',
+        'Qwerty123!',
+        'Summer2024!',
+        'Summer2025!',
+        'Summer2026!'
+    ];
+
+    function loginVulnerable() {
+        return login('/a07/vulnerable/login');
+    }
+
+    function loginFixed() {
+        return login('/a07/fixed/login');
+    }
+
+    function login(path) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        return sendFormPostRequest({
+            path: path,
+            formData: {
+                username: username,
+                password: password
+            },
+            requestText:
+                `POST ${path}\n` +
+                'Content-Type: application/x-www-form-urlencoded\n\n' +
+                `username=${username}&password=${password}`
+        });
+    }
+
+    async function runPasswordSpray(path) {
+        const username = document.getElementById('username').value;
+        const statusBadge = document.getElementById('status');
+        const requestLine = document.getElementById('requestLine');
+        const result = document.getElementById('result');
+
+        requestLine.textContent =
+            `DELETE ${path}\n\n` +
+            passwordCandidates.map(password =>
+                `POST ${path} username=${username}&password=${password}`
+            ).join('\n');
+        setLoading(statusBadge, result);
+
+        try {
+            await fetch(contextPath() + path, {
+                method: 'DELETE',
+                headers: {'Accept': 'application/json'}
+            });
+
+            const attempts = [];
+
+            for (const password of passwordCandidates) {
+                const body = new URLSearchParams({
+                    username: username,
+                    password: password
+                });
+                const response = await fetch(contextPath() + path, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: body
+                });
+
+                attempts.push({
+                    password: password,
+                    status: response.status,
+                    retryAfter: response.headers.get('Retry-After'),
+                    response: await readResponseBody(response)
+                });
+            }
+
+            const blocked = attempts.some(attempt => attempt.status === 429);
+            const authenticated = attempts.some(attempt => attempt.status === 200);
+
+            statusBadge.className = blocked ? 'status ok' : 'status error';
+            statusBadge.textContent = blocked
+                ? 'Attack throttled'
+                : authenticated
+                    ? 'Password discovered'
+                    : 'Completed';
+            result.textContent = JSON.stringify(attempts, null, 2);
+        } catch (error) {
+            setRequestFailed(statusBadge, result, error);
+        }
+    }
+
+    async function resetAttempts() {
+        const statusBadge = document.getElementById('status');
+        const requestLine = document.getElementById('requestLine');
+        const result = document.getElementById('result');
+        const path = '/a07/fixed/login';
+
+        requestLine.textContent = `DELETE ${path}`;
+        setLoading(statusBadge, result);
+
+        try {
+            const response = await fetch(contextPath() + path, {
+                method: 'DELETE',
+                headers: {'Accept': 'application/json'}
+            });
+            const body = await readResponseBody(response);
+
+            setResponseStatus(statusBadge, response);
+            result.textContent = formatBody(body);
+        } catch (error) {
+            setRequestFailed(statusBadge, result, error);
+        }
+    }
+
+    renderLabFooter();
+</script>
+</body>
+</html>

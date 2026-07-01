@@ -1,0 +1,32 @@
+rules:
+  - id: owasp-java-vulnerabilities.a07.authentication-without-attempt-limiting
+    languages:
+      - java
+    severity: WARNING
+    message: >
+      Credentials are verified without checking login attempt limits.
+      Automated password guessing may be possible. Apply account-based and
+      client-based throttling before password verification.
+    metadata:
+      category: security
+      project_case: "A07:2025 - Authentication Failures"
+      rule_type: "authentication-review-signal"
+      confidence: MEDIUM
+      cwe:
+        - "CWE-307: Improper Restriction of Excessive Authentication Attempts"
+
+    patterns:
+      - pattern-inside: |
+          public $RETURN_TYPE authenticate(...) {
+            ...
+          }
+      - pattern: |
+          $CREDENTIALS.matches($USERNAME, $PASSWORD)
+      - pattern-not-inside: |
+          public $RETURN_TYPE authenticate(...) {
+            ...
+            $LIMITER.checkAllowed(...);
+            ...
+            $CREDENTIALS.matches($USERNAME, $PASSWORD);
+            ...
+          }

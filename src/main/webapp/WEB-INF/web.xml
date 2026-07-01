@@ -154,4 +154,24 @@
         <url-pattern>/a06/fixed/orders</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>A07VulnerableLoginServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a07_authentication_failures.vulnerable.VulnerableLoginServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A07VulnerableLoginServlet</servlet-name>
+        <url-pattern>/a07/vulnerable/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>A07FixedLoginServlet</servlet-name>
+        <servlet-class>io.github.owasp.lab.a07_authentication_failures.fixed.FixedLoginServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>A07FixedLoginServlet</servlet-name>
+        <url-pattern>/a07/fixed/login</url-pattern>
+    </servlet-mapping>
+
 </web-app>

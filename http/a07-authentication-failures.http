@@ -1,0 +1,121 @@
+@baseUrl = http://localhost:8080/owasp-java-vulnerabilities
+
+### A07:2025 Authentication Failures - reset vulnerable state
+### Expected: 200 OK; vulnerable keeps no login-attempt state
+DELETE {{baseUrl}}/a07/vulnerable/login
+Accept: application/json
+
+### A07:2025 Authentication Failures - vulnerable failed attempt 1
+### Expected: 401 Unauthorized
+POST {{baseUrl}}/a07/vulnerable/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Password1!
+
+### A07:2025 Authentication Failures - vulnerable failed attempt 2
+### Expected: 401 Unauthorized
+POST {{baseUrl}}/a07/vulnerable/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Qwerty123!
+
+### A07:2025 Authentication Failures - vulnerable failed attempt 3
+### Expected: 401 Unauthorized
+POST {{baseUrl}}/a07/vulnerable/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2024!
+
+### A07:2025 Authentication Failures - vulnerable failed attempt 4
+### Expected: 401 Unauthorized; requests are still not throttled
+POST {{baseUrl}}/a07/vulnerable/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2025!
+
+### A07:2025 Authentication Failures - vulnerable password spray succeeds
+### Expected: 200 OK
+### Security issue: unlimited attempts eventually reach the valid password
+POST {{baseUrl}}/a07/vulnerable/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2026!
+
+### A07:2025 Authentication Failures - reset fixed attempt limiter
+### Expected: 200 OK
+DELETE {{baseUrl}}/a07/fixed/login
+Accept: application/json
+
+### A07:2025 Authentication Failures - fixed failed attempt 1
+### Expected: 401 Unauthorized
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Password1!
+
+### A07:2025 Authentication Failures - fixed failed attempt 2
+### Expected: 401 Unauthorized
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Qwerty123!
+
+### A07:2025 Authentication Failures - fixed failed attempt 3
+### Expected: 401 Unauthorized; the temporary block is now active
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2024!
+
+### A07:2025 Authentication Failures - fixed fourth attempt is blocked
+### Expected: 429 Too Many Requests with Retry-After header
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2025!
+
+### A07:2025 Authentication Failures - fixed valid password is also blocked during cooldown
+### Expected: 429 Too Many Requests
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2026!
+
+### A07:2025 Authentication Failures - reset and authenticate normally
+### Expected: 200 OK
+DELETE {{baseUrl}}/a07/fixed/login
+Accept: application/json
+
+### A07:2025 Authentication Failures - fixed valid login after reset
+### Expected: 200 OK
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice&password=Summer2026!
+
+### A07:2025 Authentication Failures - unknown user uses generic error
+### Expected: 401 Unauthorized with the same message as a wrong password
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=unknown&password=Summer2026!
+
+### A07:2025 Authentication Failures - missing password
+### Expected: 400 Bad Request
+POST {{baseUrl}}/a07/fixed/login
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+username=alice
